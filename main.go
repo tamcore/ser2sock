@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"strings"
+	"unicode/utf8"
 
 	"go.bug.st/serial"
 	"go.bug.st/serial/enumerator"
@@ -19,6 +20,7 @@ func main() {
 	baudRate := flag.Int("baud", 9600, "Baud rate for the serial device")
 	allowedIPs := flag.String("allowed", "", "Comma-separated list of allowed source IPs (leave empty to allow all)")
 	verbose := flag.Bool("verbose", false, "Enable verbose logging for IN/OUT data")
+	decode := flag.Bool("decode", false, "Attempt to decode data into human-readable text")
 
 	flag.Parse()
 
@@ -81,11 +83,11 @@ func main() {
 		log.Printf("Accepted connection from %s", conn.RemoteAddr())
 
 		// Handle client connection
-		go handleConnection(conn, serialPort, *verbose)
+		go handleConnection(conn, serialPort, *verbose, *decode)
 	}
 }
 
-func handleConnection(conn net.Conn, serialPort serial.Port, verbose bool) {
+func handleConnection(conn net.Conn, serialPort serial.Port, verbose, decode bool) {
 	defer conn.Close()
 
 	// Forward data from TCP to serial
@@ -100,7 +102,7 @@ func handleConnection(conn net.Conn, serialPort serial.Port, verbose bool) {
 				break
 			}
 			if verbose {
-				log.Printf("IN  (TCP->Serial): %q", buffer[:n])
+				log.Printf("IN  (TCP->Serial): %s", formatData(buffer[:n], decode))
 			}
 			_, err = serialPort.Write(buffer[:n])
 			if err != nil {
@@ -121,7 +123,7 @@ func handleConnection(conn net.Conn, serialPort serial.Port, verbose bool) {
 			break
 		}
 		if verbose {
-			log.Printf("OUT (Serial->TCP): %q", buffer[:n])
+			log.Printf("OUT (Serial->TCP): %s", formatData(buffer[:n], decode))
 		}
 		_, err = conn.Write(buffer[:n])
 		if err != nil {
@@ -129,4 +131,15 @@ func handleConnection(conn net.Conn, serialPort serial.Port, verbose bool) {
 			break
 		}
 	}
+}
+
+// formatData formats the byte data based on the decode flag
+func formatData(data []byte, decode bool) string {
+	if decode {
+		if utf8.Valid(data) {
+			return fmt.Sprintf("%q", string(data))
+		}
+		return fmt.Sprintf("(binary: %x)", data)
+	}
+	return fmt.Sprintf("%x", data)
 }
