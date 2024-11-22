@@ -1,0 +1,9 @@
+[Unit]
+Description=ser2sock
+
+[Service]
+User=root
+ExecStart=/usr/bin/ser2sock -device /dev/zigbee1 -baud 115200 -listen 0.0.0.0:18501 -verbose
+
+[Install]
+WantedBy=multi-user.target
