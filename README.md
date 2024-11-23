@@ -11,10 +11,30 @@
 
 ## Installation
 
-### Prerequisites
-- [Go](https://golang.org/) version 1.16 or later installed on your system.
+### Pre-built packages
+#### Debian / Ubuntu
+```bash
+arch=$(uname -m | sed -e "s/aarch64/arm64/" -e "s/x86_64/amd64/")
+wget -O ser2sock.deb https://github.com/tamcore/ser2sock/releases/latest/download/ser2sock_linux_${arch}.deb
+dpkg -i ser2sock.deb
+```
+#### RockyLinux / AlmaLinux / CentOS / RHEL
+```bash
+arch=$(uname -m | sed -e "s/aarch64/arm64/" -e "s/x86_64/amd64/")
+rpm -Uvh https://github.com/tamcore/ser2sock/releases/latest/download/ser2sock_linux_${arch}.rpm
+```
+#### Alpine
+```bash
+arch=$(uname -m | sed -e "s/aarch64/arm64/" -e "s/x86_64/amd64/")
+wget -O ser2sock.apk https://github.com/tamcore/ser2sock/releases/latest/download/ser2sock_linux_${arch}.apk
+apk add --allow-untrusted ser2sock.apk
+```
 
 ### Build from Source
+
+#### Prerequisites
+- [Go](https://golang.org/) version 1.16 or later installed on your system.
+#### Build
 1. Clone
    ```bash
    git clone https://github.com/tamcore/ser2sock.git
